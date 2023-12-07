@@ -1,6 +1,7 @@
 import arr
 from compile import c
 import decode
+import bit
 
 def auipc():
     decode.u()
@@ -12,6 +13,11 @@ def addi():
     arr.reg_load("RS1", "REGVALUE")
     c("LET REGVALUE=REGVALUE+IMM")
     decode.cut("REGVALUE", 32, "REGVALUE")
+    arr.reg_store("RD", "REGVALUE")
+
+def ori():
+    arr.reg_load("RS1", "REGVALUE1")
+    bit.bor("REGVALUE1", "IMM", "REGVALUE", 12)
     arr.reg_store("RD", "REGVALUE")
 
 def add():
@@ -91,9 +97,13 @@ def l():
 def i():
     decode.i()
     c("IF FUNCT3==0 THEN GOTO EILADDI")
+    c("IF FUNCT3==6 THEN GOTO EILORI")
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("EILORI:")
+    ori()
+    c("GOTO EILEND")
     c("EILADDI:")
     addi()
     c("EILEND:")

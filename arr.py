@@ -1,5 +1,6 @@
 import os
 from compile import gen_label, c
+import sys
 
 MEMSIZE=1024
 
@@ -7,10 +8,14 @@ def init_regs():
     for x in range(1, 32): c(f"LET REGN{x}=0")
 
 def init_mem():
-    os.system("riscv32-unknown-elf-as prog.S")
-    os.system("riscv32-unknown-elf-objcopy -O binary a.out a.bin")
+    if len(sys.argv) == 1:
+        os.system("riscv32-unknown-elf-as prog.S")
+        os.system("riscv32-unknown-elf-objcopy -O binary a.out a.bin")
+        f = "a.bin"
+    else:
+        f = sys.argv[1]
     i = 0
-    with open("a.bin", "rb") as f:
+    with open(f, "rb") as f:
         for x in f.read():
             c(f"LET MEMN{i}={x}")
             i += 1
