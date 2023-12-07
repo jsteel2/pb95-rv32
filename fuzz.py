@@ -8,18 +8,20 @@ def gen_reg():
     return "x" + str(random.randint(0, 31))
 
 def gen_instruction(rd):
-    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu"], "r": ["add", "sub", "or", "and", "xor", "sltu"]}
+    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu"], "r": ["add", "sub", "or", "and", "xor", "sltu"], "l": ["lb", "lh", "lw", "lbu", "lhu"]}
     type, c = random.choice(list(instrs.items()))
     instr = random.choice(c)
     match type:
         case "u": return f"{instr} {rd}, {random.randint(0, 1048575)}"
         case "i": return f"{instr} {rd}, {gen_reg()}, {random.randint(-2048, 2047)}"
         case "r": return f"{instr} {rd}, {gen_reg()}, {gen_reg()}"
+        case "l": return f"{instr} {rd}, {random.randint(-2048, 2047)}(x1)"
     return ""
 
 def gen_prog(filename):
     with open(filename + ".S", "w") as f:
-        for _i in range(1, 32):
+        f.write("li x1, 0x80000800\n")
+        for _i in range(2, 32):
             r = "x" + str(_i)
             i = gen_instruction(r) + "\n"
             ballz[_i] = i[:-1]
@@ -35,7 +37,7 @@ if __name__ == "__main__":
     while True:
         gen_prog("fuzz")
         compile("fuzz")
-        a = run(["./mini-rv32ima", "-f", "fuzz.bin", "-c", "30"], stdout=PIPE).stdout.decode().split()
+        a = run(["./mini-rv32ima", "-f", "fuzz.bin", "-c", "31"], stdout=PIPE).stdout.decode().split()
         b = run(["sh", "-c", "python3 main.py fuzz.bin | python3 pbasic.py | lua"], stdout=PIPE).stdout.decode().split("\n")
         die = False
         for i in range(0, 31 * 4, 4):
@@ -47,11 +49,11 @@ if __name__ == "__main__":
                 die = True
         if die:
             print("Program:")
-            for i in range(1, 32): print("  " + ballz[i])
+            for i in range(2, 32): print("  " + ballz[i])
             print("Registers (RV32IMA):")
-            for i in range(1, 32): print(f"  x{i}: " + str(int(a[i + 3].split(":")[1], 16)))
+            for i in range(2, 32): print(f"  x{i}: " + str(int(a[i + 3].split(":")[1], 16)))
             print("Registers (OURS):")
-            for i in range(1, 32): print(f"  x{i}: " + b[-35 + i].split(".", 1)[0])
+            for i in range(2, 32): print(f"  x{i}: " + b[-35 + i].split(".", 1)[0])
             break
         arrhar += 30
         print(f"fuzzed {arrhar} instructions")

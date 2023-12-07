@@ -78,28 +78,33 @@ def sltu():
 
 def lb():
     arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
     arr.mem_load1("REGVALUE+IMM", "MEMVALUE1") # overflow ignored, idk
     decode.sign_extend("MEMVALUE1", 8)
     arr.reg_store("RD", "MEMVALUE1")
 
 def lh():
     arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
     arr.mem_load2("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
     decode.sign_extend("MEMVALUE", 16)
     arr.reg_store("RD", "MEMVALUE")
 
 def lw():
     arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
     arr.mem_load4("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
     arr.reg_store("RD", "MEMVALUE")
 
 def lbu():
     arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
     arr.mem_load1("REGVALUE+IMM", "MEMVALUE1") # overflow ignored, idk
     arr.reg_store("RD", "MEMVALUE1")
 
 def lhu():
     arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
     arr.mem_load2("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
     arr.reg_store("RD", "MEMVALUE")
 

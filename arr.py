@@ -2,7 +2,7 @@ import os
 from compile import gen_label, c
 import sys
 
-MEMSIZE=1024
+MEMSIZE=8192
 
 def init_regs():
     for x in range(1, 32): c(f"LET REGN{x}=0")

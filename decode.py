@@ -19,6 +19,9 @@ def cut(value, bits, dest):
 def sign_extend(v, len):
     c(f"IF {v}>{(1 << (len - 1)) - 1} THEN {v}={v}+{((1 << 32) - (1 << len))}")
 
+def to_signed(v):
+    c(f"IF {v}>{(1 << 31) - 1} THEN {v}=-{1 << 32}+{v}")
+
 def bv(x, y, z):
     c(f"LET {x}=INSTRUCTION/{1 << y}")
     floor(x, "bv" + x)
