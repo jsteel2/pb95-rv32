@@ -6,6 +6,7 @@ def main():
     c("LET PC=0")
     c("MAINLOOP:")
     execute.execute()
+    c("PRINT PC")
     c("GOTO MAINLOOP")
 
 if __name__ == "__main__":

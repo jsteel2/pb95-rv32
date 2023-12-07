@@ -15,9 +15,11 @@ def addi():
     arr.reg_store("RD", "REGVALUE")
 
 def add():
-    arr.reg_load("RS1", "REGVALUE")
-    arr.reg_load("RS2", "REGVALUE2")
-    c("LET REGVALUE=REGVALUE+REGVALUE2")
+    c(f"LET DOSUB=INSTRUCTION/{1<<30}")
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE")
+    c(f"IF DOSUB>1 THEN REGVALUE={1 << 32}/2*2-REGVALUE/2*2")
+    c("LET REGVALUE=REGVALUE1+REGVALUE")
     decode.cut("REGVALUE", 32, "REGVALUE")
     arr.reg_store("RD", "REGVALUE")
 
