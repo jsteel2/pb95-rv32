@@ -36,6 +36,12 @@ def xori():
     bit.bxor("REGVALUE1", "IMM", "REGVALUE")
     arr.reg_store("RD", "REGVALUE")
 
+def sltiu():
+    arr.reg_load("RS1", "REGVALUE1")
+    c("LET REGVALUE=0")
+    c("IF REGVALUE1<IMM THEN REGVALUE=1")
+    arr.reg_store("RD", "REGVALUE")
+
 def add():
     c(f"LET DOSUB=INSTRUCTION/{1<<30}")
     arr.reg_load("RS1", "REGVALUE1")
@@ -61,6 +67,13 @@ def bxor():
     arr.reg_load("RS1", "REGVALUE1")
     arr.reg_load("RS2", "REGVALUE2")
     bit.bxor("REGVALUE1", "REGVALUE2", "REGVALUE")
+    arr.reg_store("RD", "REGVALUE")
+
+def sltu():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    c("LET REGVALUE=0")
+    c("IF REGVALUE1<REGVALUE2 THEN REGVALUE=1")
     arr.reg_store("RD", "REGVALUE")
 
 def lb():
@@ -93,12 +106,16 @@ def lhu():
 def r():
     decode.r()
     c("IF FUNCT3==0 THEN GOTO ERLADD")
+    c("IF FUNCT3==3 THEN GOTO ERLSLTU")
     c("IF FUNCT3==4 THEN GOTO ERLXOR")
     c("IF FUNCT3==6 THEN GOTO ERLOR")
     c("IF FUNCT3==7 THEN GOTO ERLAND")
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("ERLSLTU:")
+    sltu()
+    c("GOTO ERLEND")
     c("ERLXOR:")
     bxor()
     c("GOTO ERLEND")
@@ -143,12 +160,16 @@ def l():
 def i():
     decode.i()
     c("IF FUNCT3==0 THEN GOTO EILADDI")
+    c("IF FUNCT3==3 THEN GOTO EILSLTIU")
     c("IF FUNCT3==4 THEN GOTO EILXORI")
     c("IF FUNCT3==6 THEN GOTO EILORI")
     c("IF FUNCT3==7 THEN GOTO EILANDI")
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("EILSLTIU:")
+    sltiu()
+    c("GOTO EILEND")
     c("EILXORI:")
     xori()
     c("GOTO EILEND")
