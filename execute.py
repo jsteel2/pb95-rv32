@@ -23,8 +23,29 @@ def add():
 
 def lb():
     arr.reg_load("RS1", "REGVALUE")
-    arr.mem_load1("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
-    decode.sign_extend("MEMVALUE", 8)
+    arr.mem_load1("REGVALUE+IMM", "MEMVALUE1") # overflow ignored, idk
+    decode.sign_extend("MEMVALUE1", 8)
+    arr.reg_store("RD", "MEMVALUE1")
+
+def lh():
+    arr.reg_load("RS1", "REGVALUE")
+    arr.mem_load2("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
+    decode.sign_extend("MEMVALUE", 16)
+    arr.reg_store("RD", "MEMVALUE")
+
+def lw():
+    arr.reg_load("RS1", "REGVALUE")
+    arr.mem_load4("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
+    arr.reg_store("RD", "MEMVALUE")
+
+def lbu():
+    arr.reg_load("RS1", "REGVALUE")
+    arr.mem_load1("REGVALUE+IMM", "MEMVALUE1") # overflow ignored, idk
+    arr.reg_store("RD", "MEMVALUE1")
+
+def lhu():
+    arr.reg_load("RS1", "REGVALUE")
+    arr.mem_load2("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
     arr.reg_store("RD", "MEMVALUE")
 
 def r():
@@ -41,9 +62,25 @@ def r():
 def l():
     decode.i()
     c("IF FUNCT3==0 THEN GOTO ELLLB")
+    c("IF FUNCT3==1 THEN GOTO ELLLH")
+    c("IF FUNCT3==2 THEN GOTO ELLLW")
+    c("IF FUNCT3==4 THEN GOTO ELLLBU")
+    c("IF FUNCT3==5 THEN GOTO ELLLHU")
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("ELLLH:")
+    lh()
+    c("GOTO ELLEND")
+    c("ELLLW:")
+    lw()
+    c("GOTO ELLEND")
+    c("ELLLBU:")
+    lbu()
+    c("GOTO ELLEND")
+    c("ELLLHU:")
+    lhu()
+    c("GOTO ELLEND")
     c("ELLLB:")
     lb()
     c("ELLEND:")

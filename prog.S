@@ -1,12 +1,17 @@
 nop
 nop
 auipc t5, 0
-addi t5, t5, 32
-lb t6, 4(t5)
+addi t5, t5, 44
+lh x25, 5(t5)
+lw x26, 7(t5)
+lhu x27, 5(t5)
+lbu t6, 4(t5)
 add t6, t6, t6
 add t6, t6, t6
 add t6, t6, t6
 addi t2, t6, 4
 addi t6, t2, 69
-b: .word 0
-a: .byte 2
+.word 0
+.byte 2
+.half 42069
+.word 999999

@@ -17,7 +17,7 @@ def cut(value, bits, dest):
     c(f"LET {dest}={value}/2*2-CTMP/2*2")
 
 def sign_extend(v, len):
-    c(f"IF {v}>{(1 << (len - 1)) - 1} THEN {v}={v}+{(1 << (32 - len)) - 1}")
+    c(f"IF {v}>{(1 << (len - 1)) - 1} THEN {v}={v}+{((1 << 32) - (1 << len))}")
 
 def bv(x, y, z):
     c(f"LET {x}=INSTRUCTION/{1 << y}")
