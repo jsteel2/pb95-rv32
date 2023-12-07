@@ -8,7 +8,7 @@ def gen_reg():
     return "x" + str(random.randint(0, 31))
 
 def gen_instruction(rd):
-    instrs = {"i": ["addi", "ori"], "r": ["add", "sub"]}
+    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori"], "r": ["add", "sub"]}
     type, c = random.choice(list(instrs.items()))
     instr = random.choice(c)
     match type:

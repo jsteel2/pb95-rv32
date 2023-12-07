@@ -5,8 +5,14 @@ import bit
 
 def auipc():
     decode.u()
-    c("LET REGVALUE=PC+IMM") # overflow ignored, idk
+    c("LET REGVALUE=PC+IMM")
+    decode.cut("REGVALUE", 32, "REGVALUE")
     arr.reg_store("RD", "REGVALUE")
+    c("LET PC=PC+4")
+
+def lui():
+    decode.u()
+    arr.reg_store("RD", "IMM")
     c("LET PC=PC+4")
 
 def addi():
@@ -116,6 +122,7 @@ def execute():
     c("IF OPCODE==51 THEN GOTO ELR")
     c("IF OPCODE==3 THEN GOTO ELL")
     c("IF OPCODE==23 THEN GOTO ELAUIPC")
+    c("IF OPCODE==55 THEN GOTO ELLUI")
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
@@ -127,6 +134,9 @@ def execute():
     c("GOTO ELEND")
     c("ELAUIPC:")
     auipc()
+    c("GOTO ELEND")
+    c("ELLUI:")
+    lui()
     c("GOTO ELEND")
     c("ELI:")
     i()

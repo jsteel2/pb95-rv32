@@ -3,7 +3,7 @@ from compile import c, compile
 import execute
 
 def main():
-    c("LET PC=0")
+    c(f"LET PC={0x80000000}")
     c("MAINLOOP:")
     execute.execute()
     c("PRINT PC")
