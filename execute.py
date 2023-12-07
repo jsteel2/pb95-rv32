@@ -26,6 +26,16 @@ def ori():
     bit.bor("REGVALUE1", "IMM", "REGVALUE", 12)
     arr.reg_store("RD", "REGVALUE")
 
+def andi():
+    arr.reg_load("RS1", "REGVALUE1")
+    bit.band("REGVALUE1", "IMM", "REGVALUE", 12)
+    arr.reg_store("RD", "REGVALUE")
+
+def xori():
+    arr.reg_load("RS1", "REGVALUE1")
+    bit.bxor("REGVALUE1", "IMM", "REGVALUE")
+    arr.reg_store("RD", "REGVALUE")
+
 def add():
     c(f"LET DOSUB=INSTRUCTION/{1<<30}")
     arr.reg_load("RS1", "REGVALUE1")
@@ -33,6 +43,24 @@ def add():
     c(f"IF DOSUB>1 THEN REGVALUE={1 << 32}/2*2-REGVALUE/2*2")
     c("LET REGVALUE=REGVALUE1+REGVALUE")
     decode.cut("REGVALUE", 32, "REGVALUE")
+    arr.reg_store("RD", "REGVALUE")
+
+def bor():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    bit.bor("REGVALUE1", "REGVALUE2", "REGVALUE", 32)
+    arr.reg_store("RD", "REGVALUE")
+
+def band():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    bit.band("REGVALUE1", "REGVALUE2", "REGVALUE", 32)
+    arr.reg_store("RD", "REGVALUE")
+
+def bxor():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    bit.bxor("REGVALUE1", "REGVALUE2", "REGVALUE")
     arr.reg_store("RD", "REGVALUE")
 
 def lb():
@@ -65,9 +93,21 @@ def lhu():
 def r():
     decode.r()
     c("IF FUNCT3==0 THEN GOTO ERLADD")
+    c("IF FUNCT3==4 THEN GOTO ERLXOR")
+    c("IF FUNCT3==6 THEN GOTO ERLOR")
+    c("IF FUNCT3==7 THEN GOTO ERLAND")
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("ERLXOR:")
+    bxor()
+    c("GOTO ERLEND")
+    c("ERLAND:")
+    band()
+    c("GOTO ERLEND")
+    c("ERLOR:")
+    bor()
+    c("GOTO ERLEND")
     c("ERLADD:")
     add()
     c("ERLEND:")
@@ -103,10 +143,18 @@ def l():
 def i():
     decode.i()
     c("IF FUNCT3==0 THEN GOTO EILADDI")
+    c("IF FUNCT3==4 THEN GOTO EILXORI")
     c("IF FUNCT3==6 THEN GOTO EILORI")
+    c("IF FUNCT3==7 THEN GOTO EILANDI")
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("EILXORI:")
+    xori()
+    c("GOTO EILEND")
+    c("EILANDI:")
+    andi()
+    c("GOTO EILEND")
     c("EILORI:")
     ori()
     c("GOTO EILEND")
