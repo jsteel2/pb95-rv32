@@ -5,6 +5,7 @@ def bor(x, y, dest, ylen):
     if ylen != 32:
         c(f"LET {dest}={x}")
         decode.cut(dest, ylen, "BITCU")
+        c(f"LET {x}={x}/2*2-CFLRD*{1 << ylen}")
         c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}={(1 << 32) - (1 << ylen)}+BITCU")
     else:
         c(f"LET {dest}={x}")
@@ -25,6 +26,7 @@ def band(x, y, dest, ylen):
     if ylen != 32:
         c(f"LET BITDL={x}/{1 << ylen}")
         decode.floor("BITDL", "BITFL")
+        c(f"LET {x}={x}/2*2-BITFL*{1 << ylen}")
         c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}=BITFL*{1 << ylen}")
     for i in range(ylen, -1, -1):
         c(f"LET BITHX={x}/{1 << i}")
