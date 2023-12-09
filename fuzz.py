@@ -6,6 +6,7 @@ import argparse
 
 sets = 33
 prog = []
+interp = "python3 pbasic.py | lua"
 
 def gen_reg():
     return "x" + str(randint(0, 31))
@@ -47,7 +48,7 @@ def test(filename, pb):
         print("paste output:")
         b = stdin.read().strip().split("\n")
     else:
-        b = run(["sh", "-c", f"python3 main.py {filename}.bin | python3 pbasic.py | lua"], stdout=PIPE).stdout.decode().strip().split("\n")
+        b = run(["sh", "-c", f"python3 main.py {filename}.bin | {interp}"], stdout=PIPE).stdout.decode().strip().split("\n")
 
     for i, regs in enumerate(a):
         s = regs.split()
@@ -68,8 +69,10 @@ if __name__ == "__main__":
     done = 0
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--no-gen", action="store_true")
+    parser.add_argument("-l", "--lua-interpreter", action="store_true")
     parser.add_argument("-p", "--pbasic-file")
     args = parser.parse_args()
+    if args.lua_interpreter: interp = "lua pbasic.lua"
     while True:
         if not args.no_gen:
             gen_prog("fuzz")
