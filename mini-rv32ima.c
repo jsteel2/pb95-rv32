@@ -35,13 +35,13 @@ static int ReadKBByte();
 #define MINIRV32_OTHERCSR_WRITE( csrno, value ) HandleOtherCSRWrite( image, csrno, value );
 #define MINIRV32_OTHERCSR_READ( csrno, value ) value = HandleOtherCSRRead( image, csrno );
 
+struct MiniRV32IMAState * core;
+static void DumpState( struct MiniRV32IMAState * core, uint8_t * ram_image );
+
 #include "mini-rv32ima.h"
 
 uint8_t * ram_image = 0;
-struct MiniRV32IMAState * core;
 const char * kernel_command_line = 0;
-
-static void DumpState( struct MiniRV32IMAState * core, uint8_t * ram_image );
 
 int main( int argc, char ** argv )
 {
@@ -201,9 +201,6 @@ restart:
 		else
 			elapsedUs = GetTimeMicroseconds()/time_divisor - lastTime;
 		lastTime += elapsedUs;
-
-		if( single_step )
-			DumpState( core, ram_image);
 
 		int ret = MiniRV32IMAStep( core, ram_image, 0, elapsedUs, instrs_per_flip ); // Execute upto 1024 cycles before breaking out.
 		switch( ret )

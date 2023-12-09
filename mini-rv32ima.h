@@ -494,6 +494,9 @@ MINIRV32_STEPPROTO
 					}
 					break;
 				}
+                case 0x01:
+                    DumpState(core, image);
+                    break;
 				default: trap = (2+1); // Fault: Invalid opcode.
 			}
 

@@ -2,7 +2,7 @@ import os
 from compile import gen_label, c
 import sys
 
-MEMSIZE=8192
+MEMSIZE=4300
 
 def init_regs():
     for x in range(1, 32): c(f"LET REGN{x}=0")
@@ -69,7 +69,7 @@ def n_store(pre, addr, value, x=None):
     lbl = gen_label()
     if pre == "MEM": # hacky
         c(f"IF {addr}<{0x80000000} THEN GOTO {lbl}") # print an error or something
-        c(f"LET {pre}ADDR={addr}-{0x80000000}")
+        c(f"LET {pre}ADDR={addr}/2*2-{0x80000000}/2*2")
     else:
         c(f"LET {pre}ADDR={addr}")
     c(f"LET {pre}VALUE={value}")
@@ -82,7 +82,7 @@ def n_load(pre, addr, x=None):
     lbl = gen_label()
     if pre == "MEM": # hacky
         c(f"IF {addr}<{0x80000000} THEN GOTO {lbl}") # print an error or something
-        c(f"LET {pre}ADDR={addr}-{0x80000000}")
+        c(f"LET {pre}ADDR={addr}/2*2-{0x80000000}/2*2")
     else:
         c(f"LET {pre}ADDR={addr}")
     c(f"LET {pre}RET={lbl}")

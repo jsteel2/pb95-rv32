@@ -108,6 +108,11 @@ def lhu():
     arr.mem_load2("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
     arr.reg_store("RD", "MEMVALUE")
 
+def print_regs():
+    c('PRINT "REGS:"')
+    for i in range(32): c(f"PRINT REGN{i}")
+    c("LET PC=PC+4")
+
 def r():
     decode.r()
     c("IF FUNCT3==0 THEN GOTO ERLADD")
@@ -197,9 +202,13 @@ def execute():
     c("IF OPCODE==3 THEN GOTO ELL")
     c("IF OPCODE==23 THEN GOTO ELAUIPC")
     c("IF OPCODE==55 THEN GOTO ELLUI")
+    c("IF OPCODE==1 THEN GOTO ELPRINTREGS")
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
+    c("ELPRINTREGS:")
+    print_regs()
+    c("GOTO ELEND")
     c("ELR:")
     r()
     c("GOTO ELEND")
