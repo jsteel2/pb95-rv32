@@ -5,8 +5,7 @@ import bit
 
 def auipc():
     decode.u()
-    c("LET REGVALUE=PC+IMM")
-    decode.cut("REGVALUE", 32, "REGVALUE")
+    decode.cut("(PC+IMM)", 32, "REGVALUE")
     arr.reg_store("RD", "REGVALUE")
     c("LET PC=PC+4")
 
@@ -17,8 +16,7 @@ def lui():
 
 def addi():
     arr.reg_load("RS1", "REGVALUE")
-    c("LET REGVALUE=REGVALUE+IMM")
-    decode.cut("REGVALUE", 32, "REGVALUE")
+    decode.cut("(REGVALUE+IMM)", 32, "REGVALUE")
     arr.reg_store("RD", "REGVALUE")
 
 def ori():
@@ -33,7 +31,7 @@ def andi():
 
 def xori():
     arr.reg_load("RS1", "REGVALUE1")
-    bit.bxor("REGVALUE1", "IMM", "REGVALUE")
+    bit.bxor("REGVALUE1", "IMM", "REGVALUE", 12)
     arr.reg_store("RD", "REGVALUE")
 
 def sltiu():
@@ -43,12 +41,10 @@ def sltiu():
     arr.reg_store("RD", "REGVALUE")
 
 def add():
-    c(f"LET DOSUB=INSTRUCTION/{1<<30}")
     arr.reg_load("RS1", "REGVALUE1")
     arr.reg_load("RS2", "REGVALUE")
-    c(f"IF DOSUB>1 THEN REGVALUE={1 << 32}/2*2-REGVALUE/2*2")
-    c("LET REGVALUE=REGVALUE1+REGVALUE")
-    decode.cut("REGVALUE", 32, "REGVALUE")
+    c(f"IF FUNCT7>0 THEN REGVALUE={1 << 32}-REGVALUE")
+    decode.cut("(REGVALUE1+REGVALUE)", 32, "REGVALUE")
     arr.reg_store("RD", "REGVALUE")
 
 def bor():
@@ -66,7 +62,7 @@ def band():
 def bxor():
     arr.reg_load("RS1", "REGVALUE1")
     arr.reg_load("RS2", "REGVALUE2")
-    bit.bxor("REGVALUE1", "REGVALUE2", "REGVALUE")
+    bit.bxor("REGVALUE1", "REGVALUE2", "REGVALUE", 32)
     arr.reg_store("RD", "REGVALUE")
 
 def sltu():
@@ -196,7 +192,7 @@ def i():
 
 def execute():
     arr.mem_load4("PC", "INSTRUCTION")
-    decode.cut("INSTRUCTION", 7, "OPCODE")
+    decode.start()
     c("IF OPCODE==19 THEN GOTO ELI")
     c("IF OPCODE==51 THEN GOTO ELR")
     c("IF OPCODE==3 THEN GOTO ELL")

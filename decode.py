@@ -1,20 +1,7 @@
 from compile import c
 
-def round(value, dest):
-    c(f"LET {dest}={value}+POW2OF52-POW2OF52")
-
-def floor(value, dest):
-    round(value, dest)
-    c(f"IF {dest}>{value} THEN {dest}={dest}/2*2-1")
-
-def snip(value, bits, dest):
-    c(f"LET CTMPF={value}/{1 << bits}")
-    floor(f"CTMPF", "CFLRD")
-    c(f"LET {dest}=CFLRD*{1 << bits}")
-
 def cut(value, bits, dest):
-    snip(value, bits, "CTMP")
-    c(f"LET {dest}={value}/2*2-CTMP/2*2")
+    c(f"LET {dest}={value}-({value}/{1 << bits}+POINT5+POW2OF52-POW2OF52-1)*{1 << bits}")
 
 def sign_extend(v, len):
     c(f"IF {v}>{(1 << (len - 1)) - 1} THEN {v}={v}+{((1 << 32) - (1 << len))}")
@@ -22,25 +9,42 @@ def sign_extend(v, len):
 def to_signed(v):
     c(f"IF {v}>{(1 << 31) - 1} THEN {v}=-{1 << 32}+{v}")
 
-def bv(x, y, z):
-    c(f"LET {x}=INSTRUCTION/{1 << y}")
-    floor(x, "bv" + x)
-    cut("bv" + x, z, x)
+# feel like we could get rid of DLAST
+
+def start():
+    c(f"LET DLAST=(INSTRUCTION/{1 << 7}+POINT5+POW2OF52-POW2OF52-1)*{1 << 7}")
+    c(f"LET OPCODE=INSTRUCTION-DLAST")
 
 def i():
-    bv("RD", 7, 5)
-    bv("FUNCT3", 12, 3)
-    bv("RS1", 15, 5)
-    c(f"LET IMMA=INSTRUCTION/{1 << 20}")
-    floor("IMMA", "IMM")
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 12}+POINT5+POW2OF52-POW2OF52-1)*{1 << 12}")
+    c(f"LET RD=(DLAST-DLAST2)/{1 << 7}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 15}+POINT5+POW2OF52-POW2OF52-1)*{1 << 15}")
+    c(f"LET FUNCT3=(DLAST2-DLAST)/{1 << 12}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET IMM=INSTRUCTION/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET RS1=(DLAST-IMM*{1 << 20})/{1 << 15}+POINT5+POW2OF52-POW2OF52-1")
     sign_extend("IMM", 12)
 
 def u():
-    bv("RD", 7, 5)
-    snip("INSTRUCTION", 12, "IMM")
+    c(f"LET IMM=(DLAST/{1 << 12}+POINT5+POW2OF52-POW2OF52-1)*{1 << 12}")
+    c(f"LET RD=(DLAST-IMM)/{1 << 7}+POINT5+POW2OF52-POW2OF52-1")
 
 def r():
-    bv("RD", 7, 5)
-    bv("FUNCT3", 12, 3)
-    bv("RS1", 15, 5)
-    bv("RS2", 20, 5)
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 12}+POINT5+POW2OF52-POW2OF52-1)*{1 << 12}")
+    c(f"LET RD=(DLAST-DLAST2)/{1 << 7}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 15}+POINT5+POW2OF52-POW2OF52-1)*{1 << 15}")
+    c(f"LET FUNCT3=(DLAST2-DLAST)/{1 << 12}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 20}+POINT5+POW2OF52-POW2OF52-1)*{1 << 20}")
+    c(f"LET RS1=(DLAST-DLAST2)/{1 << 15}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET FUNCT7=INSTRUCTION/{1 << 25}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET RS2=(DLAST2-FUNCT7*{1 << 25})/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
+
+def s():
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 12}+POINT5+POW2OF52-POW2OF52-1)*{1 << 12}")
+    c(f"LET IMMA=(DLAST-DLAST2)/{1 << 7}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 15}+POINT5+POW2OF52-POW2OF52-1)*{1 << 15}")
+    c(f"LET FUNCT3=(DLAST2-DLAST)/{1 << 12}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 20}+POINT5+POW2OF52-POW2OF52-1)*{1 << 20}")
+    c(f"LET RS1=(DLAST-DLAST2)/{1 << 15}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET IMM=IMMA+INSTRUCTION/{1 << 18}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET RS2=(DLAST2-(IMM-IMMA)*{1 << 18})/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
+    sign_extend("IMM", 12)

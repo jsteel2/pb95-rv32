@@ -1,55 +1,38 @@
 from compile import c
-import decode
 
 def bor(x, y, dest, ylen):
     if ylen != 32:
         c(f"LET {dest}={x}")
-        decode.cut(dest, ylen, "BITCU")
-        c(f"LET {x}={x}/2*2-CFLRD*{1 << ylen}")
-        c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}={(1 << 32) - (1 << ylen)}+BITCU")
+        c(f"LET DAMNYOU={x}/{1 << ylen}+POW2OF52-POW2OF52")
+        c(f"IF DAMNYOU>{x}/{1 << ylen} THEN DAMNYOU=DAMNYOU-1")
+        c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}={(1 << 32) - (1 << ylen)}+{x}-DAMNYOU*{1 << ylen}")
     else:
         c(f"LET {dest}={x}")
-    for i in range(ylen, -1, -1):
-        c(f"LET BITHX={x}/{1 << i}")
-        decode.floor("BITHX", "BITHXF")
-        c(f"LET BITHY={y}/{1 << i}")
-        decode.floor("BITHY", "BITHYF")
-
-        c("LET BITR=BITHYF/2*2-BITHXF/2*2")
-        c(f"IF BITR==1 THEN {dest}={dest}+{1 << i}")
-
-        c(f"LET {x}={x}/2*2-BITHXF*{1 << i}")
-        c(f"LET {y}={y}/2*2-BITHYF*{1 << i}")
+    for i in range(ylen):
+        c(f"IF {y}>(({y}+0.5)/2-0.5+POW2OF52-POW2OF52)*2 THEN {dest}={dest}+{1 << i}-({x}-(({x}+0.5)/2-0.5+POW2OF52-POW2OF52)*2)*{1 << i}")
+        c(f"LET {y}=({y}+0.5)/2-0.5+POW2OF52-POW2OF52")
+        c(f"LET {x}=({x}+0.5)/2-0.5+POW2OF52-POW2OF52")
 
 def band(x, y, dest, ylen):
     c(f"LET {dest}=0")
     if ylen != 32:
-        c(f"LET BITDL={x}/{1 << ylen}")
-        decode.floor("BITDL", "BITFL")
-        c(f"LET {x}={x}/2*2-BITFL*{1 << ylen}")
-        c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}=BITFL*{1 << ylen}")
-    for i in range(ylen, -1, -1):
-        c(f"LET BITHX={x}/{1 << i}")
-        decode.floor("BITHX", "BITHXF")
-        c(f"LET BITHY={y}/{1 << i}")
-        decode.floor("BITHY", "BITHYF")
+        c(f"LET DAMNYOU={x}/{1 << ylen}+POW2OF52-POW2OF52")
+        c(f"IF DAMNYOU>{x}/{1 << ylen} THEN DAMNYOU=DAMNYOU-1")
+        c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}=DAMNYOU*{1 << ylen}")
+    for i in range(ylen):
+        c(f"IF ({y}-(({y}+0.5)/2-0.5+POW2OF52-POW2OF52)*2)+({x}-(({x}+0.5)/2-0.5+POW2OF52-POW2OF52)*2)==2 THEN {dest}={dest}+{1 << i}")
+        c(f"LET {y}=({y}+0.5)/2-0.5+POW2OF52-POW2OF52")
+        c(f"LET {x}=({x}+0.5)/2-0.5+POW2OF52-POW2OF52")
 
-        c("LET BITR=BITHYF/2*2+BITHXF/2*2")
-        c(f"IF BITR==2 THEN {dest}={dest}+{1 << i}")
-
-        c(f"LET {x}={x}/2*2-BITHXF*{1 << i}")
-        c(f"LET {y}={y}/2*2-BITHYF*{1 << i}")
-
-def bxor(x, y, dest):
-    c(f"LET {dest}=0")
-    for i in range(31, -1, -1):
-        c(f"LET BITHX={x}/{1 << i}")
-        decode.floor("BITHX", "BITHXF")
-        c(f"LET BITHY={y}/{1 << i}")
-        decode.floor("BITHY", "BITHYF")
-
-        c("LET BITR=BITHYF/2*2+BITHXF/2*2")
-        c(f"IF BITR==1 THEN {dest}={dest}+{1 << i}")
-
-        c(f"LET {x}={x}/2*2-BITHXF*{1 << i}")
-        c(f"LET {y}={y}/2*2-BITHYF*{1 << i}")
+def bxor(x, y, dest, ylen):
+    if ylen != 32:
+        c(f"LET DAMNYOU={x}/{1 << ylen}+POW2OF52-POW2OF52")
+        c(f"IF DAMNYOU>{x}/{1 << ylen} THEN DAMNYOU=DAMNYOU-1")
+        c(f"LET {dest}=DAMNYOU*{1 << ylen}")
+        c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}={(1 << 32) - (1 << ylen)}-DAMNYOU*{1 << ylen}")
+    else:
+        c(f"LET {dest}=0")
+    for i in range(ylen):
+        c(f"IF ({y}-(({y}+0.5)/2-0.5+POW2OF52-POW2OF52)*2)+({x}-(({x}+0.5)/2-0.5+POW2OF52-POW2OF52)*2)==1 THEN {dest}={dest}+{1 << i}")
+        c(f"LET {y}=({y}+0.5)/2-0.5+POW2OF52-POW2OF52")
+        c(f"LET {x}=({x}+0.5)/2-0.5+POW2OF52-POW2OF52")
