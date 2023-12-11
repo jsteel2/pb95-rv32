@@ -12,12 +12,13 @@ def gen_reg():
     return "x" + str(randint(0, 31))
 
 def gen_instruction(rd):
-    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu"], "r": ["add", "sub", "or", "and", "xor", "sltu"], "l": ["lb", "lh", "lw", "lbu", "lhu"]}
+    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll"], "l": ["lb", "lh", "lw", "lbu", "lhu"], "sh": ["slli"]}
     type, c = choice(list(instrs.items()))
     instr = choice(c)
     match type:
         case "u": return f"{instr} x{rd}, {randint(0, 1048575)}"
         case "i": return f"{instr} x{rd}, {gen_reg()}, {randint(-2048, 2047)}"
+        case "sh": return f"{instr} x{rd}, {gen_reg()}, {randint(0, 31)}"
         case "r": return f"{instr} x{rd}, {gen_reg()}, {gen_reg()}"
         case "l": return f"{instr} x{rd}, {randint(-2048, 2047)}(x1)"
     return ""

@@ -40,6 +40,25 @@ def sltiu():
     c("IF REGVALUE1<IMM THEN REGVALUE=1")
     arr.reg_store("RD", "REGVALUE")
 
+def slti():
+    arr.reg_load("RS1", "REGVALUE1")
+    c("LET REGVALUE=0")
+    decode.to_signed("REGVALUE1")
+    decode.to_signed("IMM")
+    c("IF REGVALUE1<IMM THEN REGVALUE=1")
+    arr.reg_store("RD", "REGVALUE")
+
+def slli():
+    arr.reg_load("RS1", "REGVALUE")
+    c("IF IMM==0 THEN GOTO LBSSLID")
+    c("LBSSLIL:")
+    c("IF REGVALUE==0 THEN GOTO LBSSLID")
+    decode.cut("(REGVALUE*2)", 32, "REGVALUE")
+    c("LET IMM=IMM-1")
+    c("IF IMM>0 THEN GOTO LBSSLIL")
+    c("LBSSLID:")
+    arr.reg_store("RD", "REGVALUE")
+
 def add():
     arr.reg_load("RS1", "REGVALUE1")
     arr.reg_load("RS2", "REGVALUE")
@@ -70,6 +89,30 @@ def sltu():
     arr.reg_load("RS2", "REGVALUE2")
     c("LET REGVALUE=0")
     c("IF REGVALUE1<REGVALUE2 THEN REGVALUE=1")
+    arr.reg_store("RD", "REGVALUE")
+
+def slt():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    c("LET REGVALUE=0")
+    decode.to_signed("REGVALUE1")
+    decode.to_signed("REGVALUE2")
+    c("IF REGVALUE1<REGVALUE2 THEN REGVALUE=1")
+    arr.reg_store("RD", "REGVALUE")
+
+def sll():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    c(f"LET DAMNYOU=REGVALUE2/{1 << 5}+POW2OF52-POW2OF52")
+    c(f"IF DAMNYOU>REGVALUE2/{1 << 5} THEN DAMNYOU=DAMNYOU-1")
+    c(f"LET REGVALUE2=REGVALUE2-DAMNYOU*{1 << 5}")
+    c("IF REGVALUE2==0 THEN GOTO LBSSLD")
+    c("LBSSLL:")
+    c("IF REGVALUE==0 THEN GOTO LBSSLD")
+    decode.cut("(REGVALUE*2)", 32, "REGVALUE")
+    c("LET REGVALUE2=REGVALUE2-1")
+    c("IF REGVALUE2>0 THEN GOTO LBSSLL")
+    c("LBSSLD:")
     arr.reg_store("RD", "REGVALUE")
 
 def lb():
@@ -112,6 +155,8 @@ def print_regs():
 def r():
     decode.r()
     c("IF FUNCT3==0 THEN GOTO ERLADD")
+    c("IF FUNCT3==1 THEN GOTO ERLSLL")
+    c("IF FUNCT3==2 THEN GOTO ERLSLT")
     c("IF FUNCT3==3 THEN GOTO ERLSLTU")
     c("IF FUNCT3==4 THEN GOTO ERLXOR")
     c("IF FUNCT3==6 THEN GOTO ERLOR")
@@ -119,6 +164,12 @@ def r():
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("ERLSLL:")
+    sll()
+    c("GOTO ERLEND")
+    c("ERLSLT:")
+    slt()
+    c("GOTO ERLEND")
     c("ERLSLTU:")
     sltu()
     c("GOTO ERLEND")
@@ -166,6 +217,8 @@ def l():
 def i():
     decode.i()
     c("IF FUNCT3==0 THEN GOTO EILADDI")
+    c("IF FUNCT3==1 THEN GOTO EILSLLI")
+    c("IF FUNCT3==2 THEN GOTO EILSLTI")
     c("IF FUNCT3==3 THEN GOTO EILSLTIU")
     c("IF FUNCT3==4 THEN GOTO EILXORI")
     c("IF FUNCT3==6 THEN GOTO EILORI")
@@ -173,6 +226,12 @@ def i():
     c('PRINT "INVALID FUNCT3"')
     c("PRINT FUNCT3")
     c("GOTO THEEND")
+    c("EILSLLI:")
+    slli()
+    c("GOTO EILEND")
+    c("EILSLTI:")
+    slti()
+    c("GOTO EILEND")
     c("EILSLTIU:")
     sltiu()
     c("GOTO EILEND")
