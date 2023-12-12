@@ -336,7 +336,7 @@ MINIRV32_STEPPROTO
 							case 2: rval = (int32_t)rs1 < (int32_t)rs2; break;
 							case 3: rval = rs1 < rs2; break;
 							case 4: rval = rs1 ^ rs2; break;
-							case 5: rval = (ir & 0x40000000 ) ? ( ((int32_t)rs1) >> (rs2 & 0x1F) ) : ( rs1 >> (rs2 & 0x1F) ); break;
+                            case 5: rval = (ir & 0x40000000 ) ? ( (int32_t)rs1 < 0 ? ~(~rs1 >> (rs2 & 0x1F)) : rs1 >> (rs2 & 0x1F) ) : ( rs1 >> (rs2 & 0x1F) ); break;
 							case 6: rval = rs1 | rs2; break;
 							case 7: rval = rs1 & rs2; break;
 						}

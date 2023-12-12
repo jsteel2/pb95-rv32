@@ -12,7 +12,7 @@ def gen_reg():
     return "x" + str(randint(0, 31))
 
 def gen_instruction(rd):
-    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll"], "l": ["lb", "lh", "lw", "lbu", "lhu"], "sh": ["slli"]}
+    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lh", "lw", "lbu", "lhu"], "sh": ["slli", "srli", "srai"]}
     type, c = choice(list(instrs.items()))
     instr = choice(c)
     match type:
