@@ -174,34 +174,52 @@ def sra():
 def lb():
     arr.reg_load("RS1", "REGVALUE")
     decode.to_signed("IMM")
-    arr.mem_load1("REGVALUE+IMM", "MEMVALUE1") # overflow ignored, idk
-    decode.sign_extend("MEMVALUE1", 8)
-    arr.reg_store("RD", "MEMVALUE1")
+    arr.mem_load1("REGVALUE+IMM", "REGVALUE") # overflow ignored, idk
+    decode.sign_extend("REGVALUE", 8)
+    arr.reg_store("RD", "REGVALUE")
 
 def lh():
     arr.reg_load("RS1", "REGVALUE")
     decode.to_signed("IMM")
-    arr.mem_load2("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
-    decode.sign_extend("MEMVALUE", 16)
-    arr.reg_store("RD", "MEMVALUE")
+    arr.mem_load2("REGVALUE+IMM", "REGVALUE") # overflow ignored, idk
+    decode.sign_extend("REGVALUE", 16)
+    arr.reg_store("RD", "REGVALUE")
 
 def lw():
     arr.reg_load("RS1", "REGVALUE")
     decode.to_signed("IMM")
-    arr.mem_load4("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
-    arr.reg_store("RD", "MEMVALUE")
+    arr.mem_load4("REGVALUE+IMM", "REGVALUE") # overflow ignored, idk
+    arr.reg_store("RD", "REGVALUE")
 
 def lbu():
     arr.reg_load("RS1", "REGVALUE")
     decode.to_signed("IMM")
-    arr.mem_load1("REGVALUE+IMM", "MEMVALUE1") # overflow ignored, idk
-    arr.reg_store("RD", "MEMVALUE1")
+    arr.mem_load1("REGVALUE+IMM", "REGVALUE") # overflow ignored, idk
+    arr.reg_store("RD", "REGVALUE")
 
 def lhu():
     arr.reg_load("RS1", "REGVALUE")
     decode.to_signed("IMM")
-    arr.mem_load2("REGVALUE+IMM", "MEMVALUE") # overflow ignored, idk
-    arr.reg_store("RD", "MEMVALUE")
+    arr.mem_load2("REGVALUE+IMM", "REGVALUE") # overflow ignored, idk
+    arr.reg_store("RD", "REGVALUE")
+
+def sb():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    arr.mem_store1("REGVALUE+IMM", "REGVALUE2")
+
+def sh():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    arr.mem_store2("REGVALUE+IMM", "REGVALUE2")
+
+def sw():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    arr.mem_store4("REGVALUE+IMM", "REGVALUE2")
 
 def print_regs():
     c('PRINT "REGS:"')
@@ -296,10 +314,7 @@ def i():
     srli()
     c("GOTO EILEND")
     c("EILSRAI:")
-    c('PRINT "SNEED"')
-    c("PRINT IMM")
     c(f"LET IMM=IMM-{1 << 10}")
-    c("PRINT IMM")
     srai()
     c("GOTO EILEND")
     c("EILSLLI:")
@@ -325,18 +340,41 @@ def i():
     c("EILEND:")
     c("LET PC=PC+4")
 
+def s():
+    decode.s()
+    c("IF FUNCT3==0 THEN GOTO ESLSB")
+    c("IF FUNCT3==1 THEN GOTO ESLSH")
+    c("IF FUNCT3==2 THEN GOTO ESLSW")
+    c('PRINT "INVALID FUNCT3"')
+    c("PRINT FUNCT3")
+    c("GOTO THEEND")
+    c("ESLSB:")
+    sb()
+    c("GOTO ESLEND")
+    c("ESLSH:")
+    sh()
+    c("GOTO ESLEND")
+    c("ESLSW:")
+    sw()
+    c("ESLEND:")
+    c("LET PC=PC+4")
+
 def execute():
     arr.mem_load4("PC", "INSTRUCTION")
     decode.start()
-    c("IF OPCODE==19 THEN GOTO ELI")
-    c("IF OPCODE==51 THEN GOTO ELR")
-    c("IF OPCODE==3 THEN GOTO ELL")
-    c("IF OPCODE==23 THEN GOTO ELAUIPC")
-    c("IF OPCODE==55 THEN GOTO ELLUI")
     c("IF OPCODE==1 THEN GOTO ELPRINTREGS")
+    c("IF OPCODE==3 THEN GOTO ELL")
+    c("IF OPCODE==19 THEN GOTO ELI")
+    c("IF OPCODE==23 THEN GOTO ELAUIPC")
+    c("IF OPCODE==35 THEN GOTO ELS")
+    c("IF OPCODE==51 THEN GOTO ELR")
+    c("IF OPCODE==55 THEN GOTO ELLUI")
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
+    c("ELS:")
+    s()
+    c("GOTO ELEND")
     c("ELPRINTREGS:")
     print_regs()
     c("GOTO ELEND")

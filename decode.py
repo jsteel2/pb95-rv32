@@ -10,6 +10,7 @@ def to_signed(v):
     c(f"IF {v}>{(1 << 31) - 1} THEN {v}=-{1 << 32}+{v}")
 
 # feel like we could get rid of DLAST
+# also figure out why this doesnt work elsewhere like in bit.py or now arr.py
 
 def start():
     c(f"LET DLAST=(INSTRUCTION/{1 << 7}+POINT5+POW2OF52-POW2OF52-1)*{1 << 7}")
@@ -45,6 +46,7 @@ def s():
     c(f"LET FUNCT3=(DLAST2-DLAST)/{1 << 12}+POINT5+POW2OF52-POW2OF52-1")
     c(f"LET DLAST2=(INSTRUCTION/{1 << 20}+POINT5+POW2OF52-POW2OF52-1)*{1 << 20}")
     c(f"LET RS1=(DLAST-DLAST2)/{1 << 15}+POINT5+POW2OF52-POW2OF52-1")
-    c(f"LET IMM=IMMA+INSTRUCTION/{1 << 18}+POINT5+POW2OF52-POW2OF52-1")
-    c(f"LET RS2=(DLAST2-(IMM-IMMA)*{1 << 18})/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET IMMB=INSTRUCTION/{1 << 25}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET RS2=(DLAST2-IMMB*{1 << 25})/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET IMM=IMMA+IMMB*{1 << 5}")
     sign_extend("IMM", 12)

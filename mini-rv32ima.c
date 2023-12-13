@@ -213,8 +213,6 @@ restart:
 			default: printf( "Unknown failure\n" ); break;
 		}
 	}
-
-	DumpState( core, ram_image);
 }
 
 

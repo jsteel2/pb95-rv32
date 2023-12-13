@@ -5,45 +5,47 @@ from sys import stdin
 import argparse
 
 sets = 33
-prog = []
 interp = "python3 pbasic.py | lua"
+
+instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lbu", "lh", "lhu", "lw"], "sh": ["slli", "srli", "srai"]}
 
 def gen_reg():
     return "x" + str(randint(0, 31))
 
 def gen_instruction(rd):
-    instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lh", "lw", "lbu", "lhu"], "sh": ["slli", "srli", "srai"]}
     type, c = choice(list(instrs.items()))
     instr = choice(c)
     match type:
-        case "u": return f"{instr} x{rd}, {randint(0, 1048575)}"
-        case "i": return f"{instr} x{rd}, {gen_reg()}, {randint(-2048, 2047)}"
-        case "sh": return f"{instr} x{rd}, {gen_reg()}, {randint(0, 31)}"
-        case "r": return f"{instr} x{rd}, {gen_reg()}, {gen_reg()}"
-        case "l": return f"{instr} x{rd}, {randint(-2048, 2047)}(x1)"
-    return ""
+        case "u": return [f"{instr} x{rd}, {randint(0, 1048575)}"]
+        case "i": return [f"{instr} x{rd}, {gen_reg()}, {randint(-2048, 2047)}"]
+        case "sh": return [f"{instr} x{rd}, {gen_reg()}, {randint(0, 31)}"]
+        case "r": return [f"{instr} x{rd}, {gen_reg()}, {gen_reg()}"]
+        case "l":
+            off = randint(-2048, 2047)
+            return [f"{instr.replace('l', 's')[:2]} {gen_reg()}, {off}(x1)", f"{instr} x{rd}, {off}(x1)"]
+    return []
 
-def gen_prog(filename):
-    global prog
-    prog = []
+def gen_prog():
+    prog = [""]
+    reg_map = {}
+    for s in range(sets):
+        for i in range(2, 32):
+            instr = gen_instruction(i)
+            reg_map[(s, i)] = instr
+            prog.extend(instr)
+        prog.append(".word 1")
+    prog[0] = f"li x1, {0x80000000+4*len(prog)+2052}"
+    return prog, reg_map
+
+def compile(prog, filename):
     with open(filename + ".S", "w") as f:
-        prog.append("")
-        f.write("li x1, 0x80000800\n")
-        for _ in range(sets):
-            for i in range(2, 32):
-                instr = gen_instruction(i)
-                prog.append(instr)
-                f.write(instr + "\n")
-            f.write(".word 1\n")
-            prog.append("")
-
-def compile(filename):
+        for p in prog: f.write(p + "\n")
     system(f"riscv32-unknown-elf-as {filename}.S -o {filename}.elf")
     system(f"riscv32-unknown-elf-objcopy -O binary {filename}.elf {filename}.bin")
 
-def test(filename, pb):
+def test(prog, reg_map, filename, pb):
     wrong = []
-    a = run(["./mini-rv32ima", "-f", filename + ".bin", "-s", "-c", str(31 * sets)], stdout=PIPE).stdout.decode().strip().split("\n")
+    a = run(["./mini-rv32ima", "-f", filename + ".bin", "-s", "-c", str(len(prog))], stdout=PIPE).stdout.decode().strip().split("\n")
     if pb:
         system(f"python3 main.py {filename}.bin > '{pb}'")
         print("paste output:")
@@ -61,7 +63,7 @@ def test(filename, pb):
             aregs.append(areg)
             breg = int(b[bs + reg + 1].split(".")[0])
             bregs.append(breg)
-            if areg != breg: wrong.append((reg, areg, breg, aregs, bregs, prog[i * 31 + reg - 1]))
+            if areg != breg: wrong.append((reg, areg, breg, aregs, bregs, reg_map[(i, reg)]))
         del b[bs]
 
     return wrong
@@ -76,13 +78,23 @@ if __name__ == "__main__":
     if args.lua_interpreter: interp = "lua pbasic.lua"
     while True:
         if not args.no_gen:
-            gen_prog("fuzz")
-            compile("fuzz")
+            prog, reg_map = gen_prog()
+            compile(prog, "fuzz")
         else:
+            prog = []
+            reg_map = {}
+            s = 0
             with open("fuzz.S") as f:
-                for l in f: prog.append(l[:-1])
-        if not args.pbasic_file: wrong = test("fuzz", None)
-        else: wrong = test("fuzz", args.pbasic_file)
+                for l in f:
+                    instr = l[:-1]
+                    prog.append(instr)
+                    i = instr.split()
+                    if i[0] == ".word":
+                        s += 1
+                    elif not (i[0].replace("s", "l") in instrs["l"] and i[0] not in instrs["l"]):
+                        reg_map[(s, int(i[1][1:-1]))] = instr
+        if not args.pbasic_file: wrong = test(prog, reg_map, "fuzz", None)
+        else: wrong = test(prog, reg_map, "fuzz", args.pbasic_file)
         if wrong:
             for i, w in enumerate(wrong):
                 print(f"Register {w[0]}: (OURS) {w[2]} != {w[1]} (RV32IMA)")
