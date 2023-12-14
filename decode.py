@@ -10,7 +10,7 @@ def to_signed(v):
     c(f"IF {v}>{(1 << 31) - 1} THEN {v}=-{1 << 32}+{v}")
 
 # feel like we could get rid of DLAST
-# also figure out why this doesnt work elsewhere like in bit.py or now arr.py
+# also figure out why this doesnt work elsewhere like in bit.py or now arr.py, or in b() here now
 
 def start():
     c(f"LET DLAST=(INSTRUCTION/{1 << 7}+POINT5+POW2OF52-POW2OF52-1)*{1 << 7}")
@@ -50,3 +50,22 @@ def s():
     c(f"LET RS2=(DLAST2-IMMB*{1 << 25})/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
     c(f"LET IMM=IMMA+IMMB*{1 << 5}")
     sign_extend("IMM", 12)
+
+def b():
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 8}+POINT5+POW2OF52-POW2OF52-1)*{1 << 8}")
+    c(f"LET IMMA=(DLAST-DLAST2)*{1 << 4}")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 12}+POINT5+POW2OF52-POW2OF52-1)*{1 << 12}")
+    c(f"LET IMMB=(DLAST2-DLAST)/{1 << 7}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 15}+POINT5+POW2OF52-POW2OF52-1)*{1 << 15}")
+    c(f"LET FUNCT3=(DLAST-DLAST2)/{1 << 12}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 20}+POINT5+POW2OF52-POW2OF52-1)*{1 << 20}")
+    c(f"LET RS1=(DLAST2-DLAST)/{1 << 15}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 25}+POINT5+POW2OF52-POW2OF52-1)*{1 << 25}")
+    c(f"LET RS2=(DLAST-DLAST2)/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 31}+POINT5+POW2OF52-POW2OF52-1)*{1 << 31}")
+    c(f"LET IMMC=(DLAST2-DLAST)/{1 << 20}+POW2OF52-POW2OF52")
+    c(f"IF IMMC>(DLAST2-DLAST)/{1 << 20} THEN IMM=IMMC-1")
+    c(f"LET IMMD=DLAST/{1 << 19}+POW2OF52-POW2OF52")
+    c(f"LET IMM=IMMA+IMMB+IMMC+IMMD")
+    c(f"IF IMMD>DLAST/{1 << 19} THEN IMM=IMM-1")
+    sign_extend("IMM", 13)

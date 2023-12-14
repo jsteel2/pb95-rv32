@@ -221,6 +221,52 @@ def sw():
     decode.to_signed("IMM")
     arr.mem_store4("REGVALUE+IMM", "REGVALUE2")
 
+def bltu():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    c(f"LET PC=PC+4")
+    c(f"IF REGVALUE<REGVALUE2 THEN PC=PC+IMM-4")
+
+def beq():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    c(f"LET PC=PC+4")
+    c(f"IF REGVALUE==REGVALUE2 THEN PC=PC+IMM-4")
+
+def bne():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    c(f"LET PC=PC+IMM")
+    c(f"IF REGVALUE==REGVALUE2 THEN PC=PC-IMM+4")
+
+def blt():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    decode.to_signed("REGVALUE2")
+    decode.to_signed("REGVALUE")
+    c(f"LET PC=PC+4")
+    c(f"IF REGVALUE<REGVALUE2 THEN PC=PC+IMM-4")
+
+def bge():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    decode.to_signed("REGVALUE2")
+    decode.to_signed("REGVALUE")
+    c(f"LET PC=PC+4")
+    c(f"IF REGVALUE+1>REGVALUE2 THEN PC=PC+IMM-4")
+
+def bgeu():
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE")
+    decode.to_signed("IMM")
+    c(f"LET PC=PC+4")
+    c(f"IF REGVALUE+1>REGVALUE2 THEN PC=PC+IMM-4")
+
 def print_regs():
     c('PRINT "REGS:"')
     for i in range(32): c(f"PRINT REGN{i}")
@@ -359,6 +405,36 @@ def s():
     c("ESLEND:")
     c("LET PC=PC+4")
 
+def b():
+    decode.b()
+    c("IF FUNCT3==0 THEN GOTO EBLBEQ")
+    c("IF FUNCT3==1 THEN GOTO EBLBNE")
+    c("IF FUNCT3==4 THEN GOTO EBLBLT")
+    c("IF FUNCT3==5 THEN GOTO EBLBGE")
+    c("IF FUNCT3==6 THEN GOTO EBLBLTU")
+    c("IF FUNCT3==7 THEN GOTO EBLBGEU")
+    c('PRINT "INVALID FUNCT3"')
+    c("PRINT FUNCT3")
+    c("GOTO THEEND")
+    c("EBLBEQ:")
+    beq()
+    c("GOTO EBLEND")
+    c("EBLBNE:")
+    bne()
+    c("GOTO EBLEND")
+    c("EBLBLT:")
+    blt()
+    c("GOTO EBLEND")
+    c("EBLBGE:")
+    bge()
+    c("GOTO EBLEND")
+    c("EBLBGEU:")
+    bgeu()
+    c("GOTO EBLEND")
+    c("EBLBLTU:")
+    bltu()
+    c("EBLEND:")
+
 def execute():
     arr.mem_load4("PC", "INSTRUCTION")
     decode.start()
@@ -369,9 +445,13 @@ def execute():
     c("IF OPCODE==35 THEN GOTO ELS")
     c("IF OPCODE==51 THEN GOTO ELR")
     c("IF OPCODE==55 THEN GOTO ELLUI")
+    c("IF OPCODE==99 THEN GOTO ELB")
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
+    c("ELB:")
+    b()
+    c("GOTO ELEND")
     c("ELS:")
     s()
     c("GOTO ELEND")
