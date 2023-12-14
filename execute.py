@@ -83,6 +83,13 @@ def srai():
     c("LBSRAID:")
     arr.reg_store("RD", "REGVALUE")
 
+def jalr():
+    decode.i()
+    arr.reg_load("RS1", "REGVALUE")
+    arr.reg_store("RD", "PC+4")
+    decode.to_signed("IMM")
+    c("LET PC=((IMM+REGVALUE+0.5)/2-0.5+POW2OF52-POW2OF52)*2")
+
 def add():
     arr.reg_load("RS1", "REGVALUE1")
     arr.reg_load("RS2", "REGVALUE")
@@ -446,9 +453,13 @@ def execute():
     c("IF OPCODE==51 THEN GOTO ELR")
     c("IF OPCODE==55 THEN GOTO ELLUI")
     c("IF OPCODE==99 THEN GOTO ELB")
+    c("IF OPCODE==103 THEN GOTO ELJALR")
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
+    c("ELJALR:")
+    jalr()
+    c("GOTO ELEND")
     c("ELB:")
     b()
     c("GOTO ELEND")
