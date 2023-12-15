@@ -90,6 +90,12 @@ def jalr():
     decode.to_signed("IMM")
     c("LET PC=((IMM+REGVALUE+0.5)/2-0.5+POW2OF52-POW2OF52)*2")
 
+def jal():
+    decode.j()
+    arr.reg_store("RD", "PC+4")
+    decode.to_signed("IMM")
+    c("LET PC=PC+IMM")
+
 def add():
     arr.reg_load("RS1", "REGVALUE1")
     arr.reg_load("RS2", "REGVALUE")
@@ -454,9 +460,13 @@ def execute():
     c("IF OPCODE==55 THEN GOTO ELLUI")
     c("IF OPCODE==99 THEN GOTO ELB")
     c("IF OPCODE==103 THEN GOTO ELJALR")
+    c("IF OPCODE==111 THEN GOTO ELJAL")
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
+    c("ELJAL:")
+    jal()
+    c("GOTO ELEND")
     c("ELJALR:")
     jalr()
     c("GOTO ELEND")

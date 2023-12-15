@@ -113,12 +113,17 @@ def mem_load1(addr, dest):
 
 def mem_store(addr, w, *x):
     lblret = gen_label()
+    lbl = gen_label()
+    c(f"IF {addr}=={0x10000000} THEN GOTO {lbl}")
     c(f"IF {addr}<{0x80000000} THEN GOTO {lblret}")
     c(f"LET MEMADDR={addr}-{0x80000000}")
     c(f"LET MEMRET={lblret}")
     c(f"LET MEMW={w}")
     for y in x: c(y)
     c("GOTO MEMSTORE")
+    c(f"{lbl}:")
+    c('PRINT "UART"')
+    c("PRINT MEMVALUE1")
     c(f"{lblret}:")
 
 # see comment in decode.py

@@ -11,6 +11,8 @@ def to_signed(v):
 
 # feel like we could get rid of DLAST
 # also figure out why this doesnt work elsewhere like in bit.py or now arr.py, or in b() here now
+# also if i figure that out u could do branchless bitwise in a single line, which would be way fastr
+# after we get shit running we should mash things up into one line where ever possible for that sweet speed
 
 def start():
     c(f"LET DLAST=(INSTRUCTION/{1 << 7}+POINT5+POW2OF52-POW2OF52-1)*{1 << 7}")
@@ -64,8 +66,24 @@ def b():
     c(f"LET RS2=(DLAST-DLAST2)/{1 << 20}+POINT5+POW2OF52-POW2OF52-1")
     c(f"LET DLAST=(INSTRUCTION/{1 << 31}+POINT5+POW2OF52-POW2OF52-1)*{1 << 31}")
     c(f"LET IMMC=(DLAST2-DLAST)/{1 << 20}+POW2OF52-POW2OF52")
-    c(f"IF IMMC>(DLAST2-DLAST)/{1 << 20} THEN IMM=IMMC-1")
+    c(f"IF IMMC>(DLAST2-DLAST)/{1 << 20} THEN IMMC=IMMC-1")
     c(f"LET IMMD=DLAST/{1 << 19}+POW2OF52-POW2OF52")
+    c(f"IF IMMD>DLAST/{1 << 19} THEN IMMD=IMMD-1")
     c(f"LET IMM=IMMA+IMMB+IMMC+IMMD")
-    c(f"IF IMMD>DLAST/{1 << 19} THEN IMM=IMM-1")
     sign_extend("IMM", 13)
+
+def j():
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 12}+POINT5+POW2OF52-POW2OF52-1)*{1 << 12}")
+    c(f"LET RD=(DLAST-DLAST2)/{1 << 7}+POINT5+POW2OF52-POW2OF52-1")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 20}+POINT5+POW2OF52-POW2OF52-1)*{1 << 20}")
+    c(f"LET IMMA=DLAST2-DLAST")
+    c(f"LET DLAST2=(INSTRUCTION/{1 << 21}+POINT5+POW2OF52-POW2OF52-1)*{1 << 21}")
+    c(f"LET IMMB=(DLAST-DLAST2)/{1 << 9}+POW2OF52-POW2OF52")
+    c(f"IF IMMB>(DLAST-DLAST2)/{1 << 9} THEN IMMB=IMMB-1")
+    c(f"LET DLAST=(INSTRUCTION/{1 << 31}+POINT5+POW2OF52-POW2OF52-1)*{1 << 31}")
+    c(f"LET IMMC=(DLAST2-DLAST)/{1 << 20}+POW2OF52-POW2OF52")
+    c(f"IF IMMC>(DLAST2-DLAST)/{1 << 20} THEN IMMC=IMMC-1")
+    c(f"LET IMMD=DLAST/{1 << 11}+POW2OF52-POW2OF52")
+    c(f"IF IMMD>DLAST/{1 << 11} THEN IMMD=IMMD-1")
+    c(f"LET IMM=IMMA+IMMB+IMMC+IMMD")
+    sign_extend("IMM", 21)
