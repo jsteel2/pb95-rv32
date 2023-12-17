@@ -362,6 +362,23 @@ def amomax():
     arr.mem_store4("REGVALUE1", "REGVALUE2")
     arr.reg_store("RD", "REGVALUE3")
 
+def lr():
+    arr.reg_load("RS1", "REGVALUE1")
+    c("LET RESERVATION=REGVALUE1")
+    arr.mem_load4("REGVALUE1", "REGVALUE")
+    arr.reg_store("RD", "REGVALUE")
+
+def sc():
+    arr.reg_load("RS1", "REGVALUE1")
+    c("IF REGVALUE1==RESERVATION THEN GOTO LBSCRT")
+    arr.reg_store("RD", "1")
+    c("GOTO LBSCRE")
+    c("LBSCRT:")
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.mem_store4("REGVALUE1", "REGVALUE2")
+    arr.reg_store("RD", "0")
+    c("LBSCRE:")
+
 def print_regs():
     c('PRINT "REGS:"')
     for i in range(32): c(f"PRINT REGN{i}")
@@ -534,6 +551,8 @@ def amo():
     decode.r()
     c(f"LET FUNCT5=FUNCT7/4+POINT5+POW2OF52-POW2OF52-1")
     c("IF FUNCT5==0 THEN GOTO EAMOLADD")
+    c("IF FUNCT5==2 THEN GOTO EAMOLLR")
+    c("IF FUNCT5==3 THEN GOTO EAMOLSC")
     c("IF FUNCT5==1 THEN GOTO EAMOLSWAP")
     c("IF FUNCT5==4 THEN GOTO EAMOLXOR")
     c("IF FUNCT5==8 THEN GOTO EAMOLOR")
@@ -545,6 +564,12 @@ def amo():
     c('PRINT "INVALID FUNCT5"')
     c("PRINT FUNCT5")
     c("GOTO THEEND")
+    c("EAMOLLR:")
+    lr()
+    c("GOTO EAMOLEND")
+    c("EAMOLSC:")
+    sc()
+    c("GOTO EAMOLEND")
     c("EAMOLMIN:")
     amomin()
     c("GOTO EAMOLEND")

@@ -7,20 +7,21 @@ import argparse
 sets = 70
 interp = "python3 pbasic.py | lua"
 
-instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lbu", "lh", "lhu", "lw"], "sh": ["slli", "srli", "srai"], "amo": ["amoswap.w", "amoadd.w", "amoxor.w", "amoand.w", "amoor.w", "amominu.w", "amomaxu.w", "amomin.w", "amomax.w"]}
+instrs = {"u": {"auipc", "lui"}, "i": {"addi", "ori", "andi", "xori", "sltiu", "slti"}, "r": {"add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"}, "l": {"lb", "lbu", "lh", "lhu", "lw"}, "sh": {"slli", "srli", "srai"}, "amo": {"amoswap.w", "amoadd.w", "amoxor.w", "amoand.w", "amoor.w", "amominu.w", "amomaxu.w", "amomin.w", "amomax.w", "sc.w"}, "lr": {"lr.w"}}
 
 def gen_reg():
     return "x" + str(randint(0, 31))
 
 def gen_instruction(rd):
-    type, c = choice(list(instrs.items()))
-    instr = choice(c)
+    instr = choice([x for y in instrs.values() for x in y])
+    type = next(k for k, v in instrs.items() if instr in v)
     match type:
         case "u": return [f"{instr} x{rd}, {randint(0, 1048575)}"]
         case "i": return [f"{instr} x{rd}, {gen_reg()}, {randint(-2048, 2047)}"]
         case "sh": return [f"{instr} x{rd}, {gen_reg()}, {randint(0, 31)}"]
         case "r": return [f"{instr} x{rd}, {gen_reg()}, {gen_reg()}"]
         case "amo": return [f"{instr} x{rd}, {gen_reg()}, (x1)"]
+        case "lr": return [f"{instr} x{rd}, (x1)"]
         case "l":
             off = randint(-2048, 2047)
             return [f"{instr.replace('l', 's')[:2]} {gen_reg()}, {off}(x1)", f"{instr} x{rd}, {off}(x1)"]

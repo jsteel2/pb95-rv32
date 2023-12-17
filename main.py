@@ -14,6 +14,7 @@ if __name__ == "__main__":
     arr.init_regs()
     c(f"LET POW2OF52={2 ** 52}")
     c("LET POINT5=0.50000000000001")
+    c("LET RESERVATION=0")
     c('PRINT "INITIALIZING MEMORY"')
     arr.init_mem()
     c('PRINT "STARTING UP!"')
