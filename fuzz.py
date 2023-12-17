@@ -7,7 +7,7 @@ import argparse
 sets = 70
 interp = "python3 pbasic.py | lua"
 
-instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lbu", "lh", "lhu", "lw"], "sh": ["slli", "srli", "srai"], "amo": ["amoswap.w", "amoadd.w", "amoxor.w", "amoand.w", "amoor.w"]}
+instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lbu", "lh", "lhu", "lw"], "sh": ["slli", "srli", "srai"], "amo": ["amoswap.w", "amoadd.w", "amoxor.w", "amoand.w", "amoor.w", "amominu.w", "amomaxu.w", "amomin.w", "amomax.w"]}
 
 def gen_reg():
     return "x" + str(randint(0, 31))

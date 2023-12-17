@@ -7,3 +7,6 @@ to run the emulator in progressbar95, copy it to %APPDATA%\Roaming\Spooky House 
 and load it with PBLOAD 1
 fuzz.py tests if the emulator works correctly 
 it doesnt test all instructions yet tho
+
+need more optimization, i know its possible, also due for a refactor
+will probably do that when we runnin linux
