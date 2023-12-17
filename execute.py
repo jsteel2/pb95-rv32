@@ -280,6 +280,48 @@ def bgeu():
     c(f"LET PC=PC+4")
     c(f"IF REGVALUE+1>REGVALUE2 THEN PC=PC+IMM-4")
 
+def amoswap():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.mem_load4("REGVALUE1", "REGVALUE3")
+    arr.mem_store4("REGVALUE1", "REGVALUE2")
+    arr.reg_store("RD", "REGVALUE3")
+
+def amoadd():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.mem_load4("REGVALUE1", "REGVALUE3")
+    decode.cut("(REGVALUE2+REGVALUE3)", 32, "REGVALUE4")
+    arr.mem_store4("REGVALUE1", "REGVALUE4")
+    arr.reg_store("RD", "REGVALUE3")
+
+def amoxor():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.mem_load4("REGVALUE1", "REGVALUE3")
+    c("LET REGVALUE5=REGVALUE3")
+    bit.bxor("REGVALUE2", "REGVALUE5", "REGVALUE4", 32)
+    arr.mem_store4("REGVALUE1", "REGVALUE4")
+    arr.reg_store("RD", "REGVALUE3")
+
+def amoand():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.mem_load4("REGVALUE1", "REGVALUE3")
+    c("LET REGVALUE5=REGVALUE3")
+    bit.band("REGVALUE2", "REGVALUE5", "REGVALUE4", 32)
+    arr.mem_store4("REGVALUE1", "REGVALUE4")
+    arr.reg_store("RD", "REGVALUE3")
+
+def amoor():
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_load("RS2", "REGVALUE2")
+    arr.mem_load4("REGVALUE1", "REGVALUE3")
+    c("LET REGVALUE5=REGVALUE3")
+    bit.bor("REGVALUE2", "REGVALUE5", "REGVALUE4", 32)
+    arr.mem_store4("REGVALUE1", "REGVALUE4")
+    arr.reg_store("RD", "REGVALUE3")
+
 def print_regs():
     c('PRINT "REGS:"')
     for i in range(32): c(f"PRINT REGN{i}")
@@ -448,6 +490,34 @@ def b():
     bltu()
     c("EBLEND:")
 
+def amo():
+    decode.r()
+    c(f"LET FUNCT5=FUNCT7/4+POINT5+POW2OF52-POW2OF52-1")
+    c("IF FUNCT5==0 THEN GOTO EAMOLADD")
+    c("IF FUNCT5==1 THEN GOTO EAMOLSWAP")
+    c("IF FUNCT5==4 THEN GOTO EAMOLXOR")
+    c("IF FUNCT5==8 THEN GOTO EAMOLOR")
+    c("IF FUNCT5==12 THEN GOTO EAMOLAND")
+    c('PRINT "INVALID FUNCT5"')
+    c("PRINT FUNCT5")
+    c("GOTO THEEND")
+    c("EAMOLOR:")
+    amoor()
+    c("GOTO EAMOLEND")
+    c("EAMOLAND:")
+    amoand()
+    c("GOTO EAMOLEND")
+    c("EAMOLXOR:")
+    amoxor()
+    c("GOTO EAMOLEND")
+    c("EAMOLADD:")
+    amoadd()
+    c("GOTO EAMOLEND")
+    c("EAMOLSWAP:")
+    amoswap()
+    c("EAMOLEND:")
+    c("LET PC=PC+4")
+
 def execute():
     arr.mem_load4("PC", "INSTRUCTION")
     decode.start()
@@ -456,6 +526,7 @@ def execute():
     c("IF OPCODE==19 THEN GOTO ELI")
     c("IF OPCODE==23 THEN GOTO ELAUIPC")
     c("IF OPCODE==35 THEN GOTO ELS")
+    c("IF OPCODE==47 THEN GOTO ELAMO")
     c("IF OPCODE==51 THEN GOTO ELR")
     c("IF OPCODE==55 THEN GOTO ELLUI")
     c("IF OPCODE==99 THEN GOTO ELB")
@@ -464,6 +535,9 @@ def execute():
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
+    c("ELAMO:")
+    amo()
+    c("GOTO ELEND")
     c("ELJAL:")
     jal()
     c("GOTO ELEND")

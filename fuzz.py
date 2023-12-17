@@ -4,10 +4,10 @@ from subprocess import run, PIPE
 from sys import stdin
 import argparse
 
-sets = 33
+sets = 70
 interp = "python3 pbasic.py | lua"
 
-instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lbu", "lh", "lhu", "lw"], "sh": ["slli", "srli", "srai"]}
+instrs = {"u": ["auipc", "lui"], "i": ["addi", "ori", "andi", "xori", "sltiu", "slti"], "r": ["add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"], "l": ["lb", "lbu", "lh", "lhu", "lw"], "sh": ["slli", "srli", "srai"], "amo": ["amoswap.w", "amoadd.w", "amoxor.w", "amoand.w", "amoor.w"]}
 
 def gen_reg():
     return "x" + str(randint(0, 31))
@@ -20,6 +20,7 @@ def gen_instruction(rd):
         case "i": return [f"{instr} x{rd}, {gen_reg()}, {randint(-2048, 2047)}"]
         case "sh": return [f"{instr} x{rd}, {gen_reg()}, {randint(0, 31)}"]
         case "r": return [f"{instr} x{rd}, {gen_reg()}, {gen_reg()}"]
+        case "amo": return [f"{instr} x{rd}, {gen_reg()}, (x1)"]
         case "l":
             off = randint(-2048, 2047)
             return [f"{instr.replace('l', 's')[:2]} {gen_reg()}, {off}(x1)", f"{instr} x{rd}, {off}(x1)"]
@@ -45,7 +46,7 @@ def compile(prog, filename):
 
 def test(prog, reg_map, filename, pb):
     wrong = []
-    a = run(["./mini-rv32ima", "-f", filename + ".bin", "-s", "-c", str(len(prog))], stdout=PIPE).stdout.decode().strip().split("\n")
+    a = run(["./mini-rv32ima", "-b", "disable", "-f", filename + ".bin", "-s", "-c", str(len(prog))], stdout=PIPE).stdout.decode().strip().split("\n")
     if pb:
         system(f"python3 main.py {filename}.bin > '{pb}'")
         print("paste output:")
