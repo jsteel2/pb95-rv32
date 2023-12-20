@@ -5,6 +5,8 @@ import execute
 def main():
     c(f"LET PC={0x80000000}")
     c("MAINLOOP:")
+    c("LET CSRCYCLE=CSRCYCLE+1")
+    c(f"IF CSRCYCLE=={1 << 32} THEN CSRCYCLE=0")
     execute.execute()
     c("PRINT PC")
     c("GOTO MAINLOOP")
@@ -12,6 +14,7 @@ def main():
 if __name__ == "__main__":
     c('PRINT "INITIALIZING REGISTERS"')
     arr.init_regs()
+    arr.init_csrs()
     c(f"LET POW2OF52={2 ** 52}")
     c("LET POINT5=0.50000000000001")
     c("LET RESERVATION=0")

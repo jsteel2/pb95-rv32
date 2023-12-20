@@ -379,6 +379,17 @@ def sc():
     arr.reg_store("RD", "0")
     c("LBSCRE:")
 
+def csrrw():
+    arr.csr_load("IMM", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_store("RD", "REGVALUE2")
+    arr.csr_store("IMM", "REGVALUE1")
+
+def csrrwi():
+    arr.csr_load("IMM", "REGVALUE")
+    arr.reg_store("RD", "REGVALUE")
+    arr.csr_store("IMM", "RS1")
+
 def print_regs():
     c('PRINT "REGS:"')
     for i in range(32): c(f"PRINT REGN{i}")
@@ -599,6 +610,20 @@ def amo():
     c("EAMOLEND:")
     c("LET PC=PC+4")
 
+def z():
+    decode.z()
+    c("IF FUNCT3==1 THEN GOTO EZLCSRRW")
+    c("IF FUNCT3==5 THEN GOTO EZLCSRRWI")
+    c('PRINT "INVALID FUNCT3"')
+    c("GOTO THEEND")
+    c("EZLCSRRWI:")
+    csrrwi()
+    c("GOTO EZLEND")
+    c("EZLCSRRW:")
+    csrrw()
+    c("EZLEND:")
+    c("LET PC=PC+4")
+
 def execute():
     arr.mem_load4("PC", "INSTRUCTION")
     decode.start()
@@ -613,9 +638,13 @@ def execute():
     c("IF OPCODE==99 THEN GOTO ELB")
     c("IF OPCODE==103 THEN GOTO ELJALR")
     c("IF OPCODE==111 THEN GOTO ELJAL")
+    c("IF OPCODE==115 THEN GOTO ELZ")
     c('PRINT "INVALID OPCODE"')
     c("PRINT OPCODE")
     c("GOTO THEEND")
+    c("ELZ:")
+    z()
+    c("GOTO ELEND")
     c("ELAMO:")
     amo()
     c("GOTO ELEND")

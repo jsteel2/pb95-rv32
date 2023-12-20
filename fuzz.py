@@ -7,10 +7,13 @@ import argparse
 sets = 70
 interp = "python3 pbasic.py | lua"
 
-instrs = {"u": {"auipc", "lui"}, "i": {"addi", "ori", "andi", "xori", "sltiu", "slti"}, "r": {"add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"}, "l": {"lb", "lbu", "lh", "lhu", "lw"}, "sh": {"slli", "srli", "srai"}, "amo": {"amoswap.w", "amoadd.w", "amoxor.w", "amoand.w", "amoor.w", "amominu.w", "amomaxu.w", "amomin.w", "amomax.w", "sc.w"}, "lr": {"lr.w"}}
+instrs = {"u": {"auipc", "lui"}, "i": {"addi", "ori", "andi", "xori", "sltiu", "slti"}, "r": {"add", "sub", "or", "and", "xor", "sltu", "slt", "sll", "srl", "sra"}, "l": {"lb", "lbu", "lh", "lhu", "lw"}, "sh": {"slli", "srli", "srai"}, "amo": {"amoswap.w", "amoadd.w", "amoxor.w", "amoand.w", "amoor.w", "amominu.w", "amomaxu.w", "amomin.w", "amomax.w", "sc.w"}, "lr": {"lr.w"}, "csr": {"csrrw"}, "csri": {"csrrwi"}}
 
 def gen_reg():
     return "x" + str(randint(0, 31))
+
+def gen_csr():
+    return choice([0x340, 0x305, 0x304, 0xc00, 0x344, 0x341, 0x300, 0x342, 0x343, 0xf11, 0x301, randint(0, 4095)])
 
 def gen_instruction(rd):
     instr = choice([x for y in instrs.values() for x in y])
@@ -22,6 +25,8 @@ def gen_instruction(rd):
         case "r": return [f"{instr} x{rd}, {gen_reg()}, {gen_reg()}"]
         case "amo": return [f"{instr} x{rd}, {gen_reg()}, (x1)"]
         case "lr": return [f"{instr} x{rd}, (x1)"]
+        case "csr": return [f"{instr} x{rd}, {gen_csr()}, {gen_reg()}"]
+        case "csri": return [f"{instr} x{rd}, {gen_csr()}, {randint(0, 31)}"]
         case "l":
             off = randint(-2048, 2047)
             return [f"{instr.replace('l', 's')[:2]} {gen_reg()}, {off}(x1)", f"{instr} x{rd}, {off}(x1)"]
@@ -53,7 +58,7 @@ def test(prog, reg_map, filename, pb):
         print("paste output:")
         b = stdin.read().strip().split("\n")
     else:
-        b = run(["sh", "-c", f"python3 main.py {filename}.bin | {interp}"], stdout=PIPE).stdout.decode().strip().split("\n")
+        b = run(["sh", "-c", f"python3 main.py {filename}.bin /dev/null | {interp}"], stdout=PIPE).stdout.decode().strip().split("\n")
 
     for i, regs in enumerate(a):
         s = regs.split()
