@@ -390,6 +390,34 @@ def csrrwi():
     arr.reg_store("RD", "REGVALUE")
     arr.csr_store("IMM", "RS1")
 
+def csrrs():
+    arr.csr_load("IMM", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_store("RD", "REGVALUE2")
+    bit.bor("REGVALUE2", "REGVALUE1", "REGVALUE3", 32)
+    arr.csr_store("IMM", "REGVALUE3")
+
+def csrrsi():
+    arr.csr_load("IMM", "REGVALUE2")
+    arr.reg_store("RD", "REGVALUE2")
+    bit.bor("REGVALUE2", "RS1", "REGVALUE3", 5, False)
+    arr.csr_store("IMM", "REGVALUE3")
+
+def csrrc():
+    arr.csr_load("IMM", "REGVALUE2")
+    arr.reg_load("RS1", "REGVALUE1")
+    arr.reg_store("RD", "REGVALUE2")
+    c(f"LET REGVALUE1={(1 << 32) - 1}-REGVALUE1")
+    bit.band("REGVALUE2", "REGVALUE1", "REGVALUE3", 32)
+    arr.csr_store("IMM", "REGVALUE3")
+
+def csrrci():
+    arr.csr_load("IMM", "REGVALUE2")
+    arr.reg_store("RD", "REGVALUE2")
+    c(f"LET RS1={(1 << 32) - 1}-RS1")
+    bit.band("REGVALUE2", "RS1", "REGVALUE3", 32)
+    arr.csr_store("IMM", "REGVALUE3")
+
 def print_regs():
     c('PRINT "REGS:"')
     for i in range(32): c(f"PRINT REGN{i}")
@@ -613,9 +641,25 @@ def amo():
 def z():
     decode.z()
     c("IF FUNCT3==1 THEN GOTO EZLCSRRW")
+    c("IF FUNCT3==2 THEN GOTO EZLCSRRS")
+    c("IF FUNCT3==3 THEN GOTO EZLCSRRC")
     c("IF FUNCT3==5 THEN GOTO EZLCSRRWI")
+    c("IF FUNCT3==6 THEN GOTO EZLCSRRSI")
+    c("IF FUNCT3==7 THEN GOTO EZLCSRRCI")
     c('PRINT "INVALID FUNCT3"')
     c("GOTO THEEND")
+    c("EZLCSRRCI:")
+    csrrci()
+    c("GOTO EZLEND")
+    c("EZLCSRRC:")
+    csrrc()
+    c("GOTO EZLEND")
+    c("EZLCSRRSI:")
+    csrrsi()
+    c("GOTO EZLEND")
+    c("EZLCSRRS:")
+    csrrs()
+    c("GOTO EZLEND")
     c("EZLCSRRWI:")
     csrrwi()
     c("GOTO EZLEND")

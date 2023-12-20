@@ -1,11 +1,12 @@
 from compile import c
 
-def bor(x, y, dest, ylen):
+def bor(x, y, dest, ylen, signed=True):
     if ylen != 32:
         c(f"LET {dest}={x}")
-        c(f"LET DAMNYOU={x}/{1 << ylen}+POW2OF52-POW2OF52")
-        c(f"IF DAMNYOU>{x}/{1 << ylen} THEN DAMNYOU=DAMNYOU-1")
-        c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}={(1 << 32) - (1 << ylen)}+{x}-DAMNYOU*{1 << ylen}")
+        if signed:
+            c(f"LET DAMNYOU={x}/{1 << ylen}+POW2OF52-POW2OF52")
+            c(f"IF DAMNYOU>{x}/{1 << ylen} THEN DAMNYOU=DAMNYOU-1")
+            c(f"IF {y}>{(1 << (ylen - 1)) - 1} THEN {dest}={(1 << 32) - (1 << ylen)}+{x}-DAMNYOU*{1 << ylen}")
     else:
         c(f"LET {dest}={x}")
     for i in range(ylen):
